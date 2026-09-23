@@ -2,6 +2,31 @@
 
 All notable changes to KeepAwakeTray are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
+## [2.2.0]
+
+### Added
+- **Skins & Themes architecture**: decoupled UI assets from application logic, allowing plug-and-play visual customization via custom icon packs.
+- **Folder and ZIP archive support**: skin packages can be placed in `skins/` as standard folders or as compressed `.zip` archives (read directly in memory via `System.IO.Compression`).
+- **Dynamic hot-swapping**: right-click → *Skins* submenu allows switching themes instantly without restarting the app.
+- **Visual Skin Thumbnails**: live 16x16 icon previews displayed directly inside the *Skins* submenu for each available theme.
+- **Open Skins folder shortcut**: one-click menu item to quickly reveal the `skins/` folder in Windows Explorer.
+- **DPI-aware bicubic image scaling**: custom skin PNG/ICO assets are smoothly scaled to the system tray's native resolution across any display scaling factor (100%, 125%, 150%, 200%).
+- **Fallback mechanism**: missing icons in a skin automatically fall back to the built-in procedural colored dots (`Classic`).
+- **First official skin `Pixel Office`**: included character-driven pixel-art icon pack featuring active (typing at desk), waiting (relaxing), and paused (sleeping) states.
+- **Config persistence**: active theme name is saved to `KeepAwakeTray.ini` (`Skin=Pixel Office`).
+- **Application Icon**: embedded multi-resolution Windows executable icon (`assets/app.ico` supporting 16, 24, 32, 48, 64, 128, and 256px resolutions) compiled directly into the binary.
+- **ContextMenuStrip & Modern UI Migration**: replaced legacy WinForms `ContextMenu` with `ContextMenuStrip` and `ToolStripMenuItem`.
+- **Windows 11 Dark Mode Menu Theme**: custom `ModernMenuRenderer` and `ModernColorTable` detecting system dark/light mode dynamically (`AppsUseLightTheme`), rendering dark menus and resolution-independent checkmarks.
+- **Immersive Dark Titlebars**: Schedule and Pause Duration dialogs feature `DwmSetWindowAttribute` dark titlebars, modern typography, and embedded application icons.
+- **Multi-Target SDK-Style Project**: added `KeepAwakeTray.csproj` supporting dual compilation for `.NET 8.0-windows` and `.NET Framework 4.8`, while retaining 100% standalone compiler compatibility with `csc.exe`.
+
+## [2.1.0]
+
+### Added
+- **Pause / Snooze timer**: Added right-click menu options to temporarily pause keep-awake for preset durations (5, 10, 30 minutes) or custom hours (via a DPI-aware dialog with a decimal numeric stepper).
+- **Auto-resume**: Once the snooze interval expires, keep-awake automatically resumes and notifies via a balloon tip.
+- **One-click Resume Now**: When snoozed, the context menu surfaces a dynamic `Resume now (paused until HH:mm)` item to cancel the snooze early.
+- **Snooze status in tray tooltip**: While snoozed, the tray icon tooltip displays the exact end time (`KeepAwake: paused until HH:mm`).
 
 ## [2.0.0] — 2026-06-22
 

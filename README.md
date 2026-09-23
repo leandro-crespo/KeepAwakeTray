@@ -25,12 +25,16 @@ it's pulsing.
 ## Features
 
 - 🟢 / 🟡 / ⚪ tray icon showing the current state (DPI-aware, crisp on scaled displays).
+- **Skins & Themes engine**: plug-and-play customizable icon packs. Drop a `.zip` or folder into `skins/` and switch themes dynamically from the tray menu (includes the retro **Pixel Office** character pack and procedural classic dots).
 - Manual on/off toggle (double-click or menu).
 - **Keep Active** override that ignores the schedule for the current session.
+- **Pause / Snooze timer** with preset intervals (5, 10, 30 minutes) and custom hours with auto-resume.
 - Optional **time window** (e.g. 08:00–19:00) and **weekdays-only** gating;
   windows that cross midnight are supported, and `start == end` means **24h**.
 - Settings dialog (right-click → *Schedule…*) with `HH:mm` time pickers.
 - Blocks **display-off and sleep** while pulsing (`SetThreadExecutionState`).
+- Periodic **zero-pixel mouse move** (`SendInput`) keeps the session awake without
+  moving your cursor.
 - **Single-instance** guard — launching twice won't create two tray icons.
 - **Configurable** config-file location (`-config`), defaulting next to the exe.
 - Human-editable `KeepAwakeTray.ini`.
@@ -55,11 +59,11 @@ Right-click the icon for the menu, and open **Schedule…** to set the time wind
 
 ### Icon states
 
-| Icon | Meaning |
-|------|---------|
-| 🟢 Green  | Active and pulsing (Keep Active, or inside the window). |
-| 🟡 Yellow | Active but waiting — outside the schedule (outside the time window, or a non-weekday when Weekdays-only is on) — not pulsing. |
-| ⚪ Gray   | Paused manually. |
+| State | Pixel Office Skin | Classic Dots Skin | Meaning |
+|---|---|---|---|
+| **Active** | Guy working at laptop (blue/green) | 🟢 Green | Active and pulsing (Keep Active, or inside the window). |
+| **Waiting** | Guy relaxing at desk (orange/yellow) | 🟡 Yellow | Active but waiting — outside schedule, not pulsing. |
+| **Paused** | Guy sleeping on desk (red) | ⚪ Gray | Paused manually or snoozed (tooltip displays end time). |
 
 ## Usage
 
@@ -67,15 +71,24 @@ Right-click the icon for the menu, and open **Schedule…** to set the time wind
 - **Right-click → Keep Active (ignore schedule)** → session override: keep awake
   regardless of the schedule (also forces Active). Not persisted — resets to the
   schedule when the process restarts.
-- **Right-click → Schedule…** → set start/end time (`HH:mm`) and the
-  weekdays-only option. Changes apply immediately and are saved.
+- **Right-click → Pause for…** → temporary snooze for 5, 10, 30 minutes, or a custom
+  number of hours. The app pauses and automatically resumes when the duration expires.
+- **Right-click → Resume now** → cancel an active snooze immediately and resume keep-awake.
+- **Right-click → Skins** → hot-swap between installed skins (`Pixel Office`, custom packs, or `Classic (Dots)`) in real time.
+- **Right-click → Skins → Open skins folder…** → instantly reveals the `skins/` folder in Windows Explorer to drop new `.zip` or folder icon packs.
+- **Right-click → Schedule…** → configure start/end time (`HH:mm`) and weekdays-only gating. Changes apply immediately and are saved.
 - **Right-click → Exit** → quit.
 
-It sends a pulse every 50 seconds, but **only** when **active** *and*
-(**Keep Active** *or* inside the configured window) — and, if enabled, on
-weekdays only. While it is pulsing it also keeps the display on and prevents the
-machine from sleeping; when it stops pulsing (paused, or outside the window) that
-hint is released and normal power behavior resumes.
+### How it works
+
+Every 50 seconds, KeepAwakeTray checks if it should be active (either inside
+the schedule or with *Keep Active* enabled):
+1. Calls `SetThreadExecutionState` to request continuous system and display
+   activity (preventing sleep and screen-off).
+2. Sends a harmless zero-pixel relative mouse movement (`MOUSEEVENTF_MOVE`) to
+   keep Windows and presence-detection software awake.
+
+When paused or outside the window, the power state is cleared and pulses stop.
 
 ## Command-line options
 
@@ -97,6 +110,7 @@ KeepAwakeTray.exe [-keepon] [-config <dir|file.ini>]
 StartTime=08:00
 EndTime=19:00
 WeekdaysOnly=1
+Skin=Pixel Office
 ```
 
 - Edits from the menu apply on the fly; edits by hand take effect on the next start.
@@ -105,6 +119,29 @@ WeekdaysOnly=1
   still subject to the weekdays-only setting.
 - `WeekdaysOnly` accepts `1/true/yes/on/y` and `0/false/no/off/n`; an
   unrecognized value leaves the current setting unchanged (it won't silently flip).
+- `Skin` specifies the active skin name (`Classic` or any theme in the `skins/` folder).
+
+## Skins & Themes
+
+KeepAwakeTray supports customizable icon theme packs (similar to WinRAR or Winamp skin packs).
+
+### How it works
+1. Place custom skins in the `skins\` directory next to `KeepAwakeTray.exe` (or use **Right-click → Skins → Open skins folder…**).
+2. A skin can be either:
+   - A **folder**: e.g. `skins\Pixel Office\`
+   - A compressed **ZIP archive**: e.g. `skins\Pixel Office.zip` (read directly in memory without decompression).
+3. The app scans the `skins\` folder dynamically on menu open. Select any theme to hot-swap icons instantly.
+
+### Supported image files in a skin
+Inside each skin folder or `.zip`, provide any of the following image files (`.png`, `.ico`, `.bmp`, `.jpg`):
+
+| State | Recognized Filenames | Pixel Office Default |
+|---|---|---|
+| **Active / Pulsing** | `active.png`, `icon-active.png`, `on.png` | Character working at desk (green check) |
+| **Waiting (off-schedule)** | `waiting.png`, `icon-waiting.png`, `wait.png`, `idle.png` | Character relaxing at desk (yellow pause) |
+| **Paused / Snoozed** | `paused.png`, `icon-paused.png`, `pause.png`, `off.png`, `sleep.png` | Character sleeping on laptop (red X) |
+
+*Note: If any state icon is missing in a custom skin, KeepAwakeTray automatically falls back to the clean procedural colored circle for that state.*
 
 ## Keeping awake vs. locking — what it can and can't do
 
@@ -156,13 +193,21 @@ No IDE required — the .NET Framework C# compiler ships with Windows:
 
 ```powershell
 & "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\csc.exe" /nologo /target:winexe `
-  /out:KeepAwakeTray.exe `
+  /win32icon:assets\app.ico /out:KeepAwakeTray.exe `
   /reference:System.dll /reference:System.Drawing.dll /reference:System.Windows.Forms.dll `
+  /reference:System.IO.Compression.dll /reference:System.IO.Compression.FileSystem.dll `
   KeepAwakeTray.cs
 ```
 
-> Targets **.NET Framework** (uses the classic `ContextMenu`/`MenuItem`). To port
-> to .NET 5+/8, swap those for `ContextMenuStrip`/`ToolStripMenuItem`/`ToolStripSeparator`.
+### Alternative: .NET SDK (`dotnet build`)
+
+If you have the .NET SDK installed (.NET 8+), you can also compile the multi-targeting project (`net48` and `net8.0-windows`):
+
+```powershell
+dotnet build -c Release KeepAwakeTray.csproj
+```
+
+The output will be placed in `bin/Release/net48/` and `bin/Release/net8.0-windows/`.
 
 ## Run at logon
 

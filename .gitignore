@@ -1,5 +1,13 @@
 # Build output
 *.exe
+[Bb]in/
+[Oo]bj/
+
+# IDE / User-specific
+.vs/
+.vscode/
+*.user
+*.suo
 
 # Local runtime config (created on first run)
 KeepAwakeTray.ini
