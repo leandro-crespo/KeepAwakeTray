@@ -518,6 +518,7 @@ namespace KeepAwakeTray {
         // ---- config I/O -------------------------------------------------------
         void LoadConfig() {
             try {
+                currentSkin = GetDefaultSkin();   // used when no Skin key exists (first run / old ini)
                 if (!File.Exists(iniPath)) { SaveConfig(); return; }   // create default
                 foreach (string raw in File.ReadAllLines(iniPath)) {
                     string line = raw.Trim();
@@ -536,12 +537,17 @@ namespace KeepAwakeTray {
                         currentSkin = val;
                     }
                 }
-                if (currentSkin == "Classic" && (Directory.Exists(Path.Combine(skinsDir, "Pixel Office")) || File.Exists(Path.Combine(skinsDir, "Pixel Office.zip")))) {
-                    currentSkin = "Pixel Office";
-                }
             } catch (Exception ex) {
                 Debug.WriteLine("KeepAwake: LoadConfig failed: " + ex.Message);   // fall back to defaults
             }
+        }
+
+        // Default skin when the user has not chosen one: Pixel Office if bundled, else Classic.
+        string GetDefaultSkin() {
+            if (Directory.Exists(Path.Combine(skinsDir, "Pixel Office")) ||
+                File.Exists(Path.Combine(skinsDir, "Pixel Office.zip")))
+                return "Pixel Office";
+            return "Classic";
         }
 
         void SaveConfig() {
@@ -932,6 +938,8 @@ namespace KeepAwakeTray {
                         btn.FlatStyle = FlatStyle.Flat;
                         btn.FlatAppearance.BorderColor = Color.FromArgb(70, 70, 76);
                         btn.BackColor = Color.FromArgb(48, 48, 54);
+                    } else if (c is NumericUpDown) {
+                        c.BackColor = Color.FromArgb(48, 48, 54);
                     } else if (c is CheckBox) {
                         ((CheckBox)c).ForeColor = fg;
                     } else if (c is Label) {

@@ -27,11 +27,17 @@ jobs:
             KeepAwakeTray.cs
           if (-not (Test-Path KeepAwakeTray.exe)) { throw "Build failed: KeepAwakeTray.exe not produced" }
 
+      - name: Package exe + skins
+        shell: pwsh
+        run: Compress-Archive -Path KeepAwakeTray.exe, skins -DestinationPath KeepAwakeTray.zip -Force
+
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: KeepAwakeTray
-          path: KeepAwakeTray.exe
+          path: |
+            KeepAwakeTray.exe
+            KeepAwakeTray.zip
 
       # Publish/refresh a downloadable "latest" release on pushes to main
       - name: Publish latest release
@@ -40,6 +46,8 @@ jobs:
         with:
           tag_name: latest
           name: Latest build
-          body: Automated build of KeepAwakeTray.exe from the latest commit on main.
+          body: Automated build from the latest commit on main. KeepAwakeTray.zip includes the exe plus the bundled skins (Pixel Office); KeepAwakeTray.exe is the bare executable (Classic skin only).
           prerelease: true
-          files: KeepAwakeTray.exe
+          files: |
+            KeepAwakeTray.exe
+            KeepAwakeTray.zip
