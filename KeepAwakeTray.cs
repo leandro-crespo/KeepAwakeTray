@@ -159,9 +159,10 @@ namespace KeepAwakeTray {
         public TrayApp(bool keepOn, string configPath) {
             iniPath = configPath;
             string configDir = Path.GetDirectoryName(iniPath);
-            skinsDir = string.IsNullOrEmpty(configDir)
-                ? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "skins")
-                : Path.Combine(configDir, "skins");
+            string exeSkins = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "skins");
+            string cfgSkins = string.IsNullOrEmpty(configDir) ? exeSkins : Path.Combine(configDir, "skins");
+            // Prefer <configDir>\skins when it exists; otherwise use the skins bundled next to the exe.
+            skinsDir = Directory.Exists(cfgSkins) ? cfgSkins : exeSkins;
 
             LoadConfig();
             if (keepOn) { bypassSchedule = true; active = true; }
@@ -712,7 +713,7 @@ namespace KeepAwakeTray {
         void OpenSkinsFolder() {
             try {
                 if (!Directory.Exists(skinsDir)) Directory.CreateDirectory(skinsDir);
-                Process.Start("explorer.exe", skinsDir);
+                Process.Start("explorer.exe", "\"" + skinsDir + "\"");
             } catch (Exception ex) {
                 Debug.WriteLine("KeepAwake: OpenSkinsFolder failed: " + ex.Message);
             }

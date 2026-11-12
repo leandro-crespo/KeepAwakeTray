@@ -126,7 +126,7 @@ Skin=Pixel Office
 KeepAwakeTray supports customizable icon theme packs (similar to WinRAR or Winamp skin packs).
 
 ### How it works
-1. Place custom skins in the `skins\` directory next to `KeepAwakeTray.exe` (or use **Right-click → Skins → Open skins folder…**).
+1. Place custom skins in the `skins\` directory next to `KeepAwakeTray.exe` (or use **Right-click → Skins → Open skins folder…**). If you use `-config` and a `skins\` folder exists next to that `.ini`, that one is used instead.
 2. A skin can be either:
    - A **folder**: e.g. `skins\Pixel Office\`
    - A compressed **ZIP archive**: e.g. `skins\Pixel Office.zip` (read directly in memory without decompression).
